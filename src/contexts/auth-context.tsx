@@ -4,6 +4,9 @@ import { createContext, useContext, useEffect, useState, useCallback } from "rea
 import { auth, db, isFirebaseConfigured } from "@/lib/firebase"
 import type { UserRole } from "@/lib/career-school-data"
 
+/** Allowed email domain for Google sign-in */
+const ALLOWED_DOMAIN = "kiit.ac.in"
+
 export interface AppUser {
   uid: string
   email: string
@@ -32,14 +35,32 @@ export function useAuth() {
   return ctx
 }
 
+// ─── Master admin credentials (for demo mode) ────────────────────
+// Email: admin@careerschool.com
+// Password: Admin@12345
+//
+// These are used in demo mode (when Firebase is not configured).
+// When Firebase IS configured, create this user via the seed script.
+
 const demoUsers: Record<string, AppUser> = {
-  student: { uid: "demo-student", email: "rahul@student.com", name: "Rahul Sharma", role: "student" },
+  student: { uid: "demo-student", email: "rahul@kiit.ac.in", name: "Rahul Sharma", role: "student" },
   admin: { uid: "demo-admin", email: "admin@careerschool.com", name: "Admin User", role: "admin" },
-  teacher: { uid: "demo-teacher", email: "rakesh@faculty.com", name: "Prof. Rakesh Jain", role: "teacher" },
-  mentor: { uid: "demo-mentor", email: "sneha@faculty.com", name: "Ms. Sneha Roy", role: "mentor" },
-  counselor: { uid: "demo-counselor", email: "priya@faculty.com", name: "Dr. Priya Mehta", role: "counselor" },
-  hr_interviewer: { uid: "demo-hr", email: "anil@faculty.com", name: "Mr. Anil Kumar", role: "hr_interviewer" },
   super_admin: { uid: "demo-super", email: "super@careerschool.com", name: "Super Admin", role: "super_admin" },
+  teacher: { uid: "demo-teacher", email: "rakesh@kiit.ac.in", name: "Prof. Rakesh Jain", role: "teacher" },
+  mentor: { uid: "demo-mentor", email: "sneha@kiit.ac.in", name: "Ms. Sneha Roy", role: "mentor" },
+  counselor: { uid: "demo-counselor", email: "priya@kiit.ac.in", name: "Dr. Priya Mehta", role: "counselor" },
+  hr_interviewer: { uid: "demo-hr", email: "anil@kiit.ac.in", name: "Mr. Anil Kumar", role: "hr_interviewer" },
+}
+
+/** Resolve demo role from email */
+function resolveDemoRole(email: string): UserRole {
+  if (email === "admin@careerschool.com") return "admin"
+  if (email === "super@careerschool.com") return "super_admin"
+  if (email.includes("teacher") || email.includes("rakesh")) return "teacher"
+  if (email.includes("mentor") || email.includes("sneha")) return "mentor"
+  if (email.includes("counselor") || email.includes("priya")) return "counselor"
+  if (email.includes("hr") || email.includes("anil")) return "hr_interviewer"
+  return "student"
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -85,8 +106,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     if (!isFirebaseConfigured || !auth) {
-      const role = email.includes("admin") ? "admin" : "student"
-      setUser(demoUsers[role])
+      // Demo mode: resolve role from email
+      const role = resolveDemoRole(email)
+      const demo = demoUsers[role]
+      setUser(demo ? { ...demo, email } : { uid: "demo-user", email, name: email.split("@")[0], role })
       return
     }
     const { signInWithEmailAndPassword } = await import("firebase/auth")
@@ -108,12 +131,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = useCallback(async () => {
     if (!isFirebaseConfigured || !auth) {
+      // Demo mode — simulate Google sign-in with a KIIT student
       setUser(demoUsers.student)
       return
     }
-    const { GoogleAuthProvider, signInWithPopup } = await import("firebase/auth")
+
+    const { GoogleAuthProvider, signInWithPopup, signOut: fbSignOut } = await import("firebase/auth")
     const provider = new GoogleAuthProvider()
+    // Hint the login to the allowed domain
+    provider.setCustomParameters({ hd: ALLOWED_DOMAIN })
+
     const cred = await signInWithPopup(auth!, provider)
+    const email = cred.user.email ?? ""
+
+    // Enforce domain restriction
+    if (!email.endsWith(`@${ALLOWED_DOMAIN}`)) {
+      await fbSignOut(auth!)
+      setUser(null)
+      throw new Error(`Only @${ALLOWED_DOMAIN} email addresses are allowed. Please use your KIIT email to sign in.`)
+    }
+
+    // Create profile if new user
     if (db) {
       const { doc, getDoc, setDoc, serverTimestamp } = await import("firebase/firestore")
       const snap = await getDoc(doc(db!, "users", cred.user.uid))

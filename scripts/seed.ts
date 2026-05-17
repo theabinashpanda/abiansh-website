@@ -43,14 +43,14 @@ async function seed() {
   // 1. Users
   console.log("Creating users...")
   const adminId = await createUser("admin@careerschool.com", "Admin@12345", "Admin User", "admin")
-  const teacher1Id = await createUser("rakesh@faculty.com", "Teacher@123", "Prof. Rakesh Jain", "teacher")
-  const teacher2Id = await createUser("amit@faculty.com", "Teacher@123", "Dr. Amit Patel", "teacher")
-  const mentorId = await createUser("sneha@faculty.com", "Mentor@123", "Ms. Sneha Roy", "mentor")
-  const counselorId = await createUser("priya@faculty.com", "Counselor@123", "Dr. Priya Mehta", "counselor")
-  const hrId = await createUser("anil@faculty.com", "HR@12345", "Mr. Anil Kumar", "hr_interviewer")
-  const student1Id = await createUser("rahul@student.com", "Student@123", "Rahul Sharma", "student")
-  const student2Id = await createUser("ananya@student.com", "Student@123", "Ananya Gupta", "student")
-  const student3Id = await createUser("vikram@student.com", "Student@123", "Vikram Singh", "student")
+  const teacher1Id = await createUser("rakesh@kiit.ac.in", "Teacher@123", "Prof. Rakesh Jain", "teacher")
+  const teacher2Id = await createUser("amit@kiit.ac.in", "Teacher@123", "Dr. Amit Patel", "teacher")
+  const mentorId = await createUser("sneha@kiit.ac.in", "Mentor@123", "Ms. Sneha Roy", "mentor")
+  const counselorId = await createUser("priya@kiit.ac.in", "Counselor@123", "Dr. Priya Mehta", "counselor")
+  const hrId = await createUser("anil@kiit.ac.in", "HR@12345", "Mr. Anil Kumar", "hr_interviewer")
+  const student1Id = await createUser("rahul@kiit.ac.in", "Student@123", "Rahul Sharma", "student")
+  const student2Id = await createUser("ananya@kiit.ac.in", "Student@123", "Ananya Gupta", "student")
+  const student3Id = await createUser("vikram@kiit.ac.in", "Student@123", "Vikram Singh", "student")
 
   // 2. Materials
   console.log("\nCreating materials...")

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { AuthProvider } from "@/contexts/auth-context"
+import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
   title: "Career School Portal | Abiansh",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 }
 
 export default function CareerSchoolLayout({ children }: { children: React.ReactNode }) {
-  return <AuthProvider>{children}</AuthProvider>
+  return (
+    <ThemeProvider>
+      <AuthProvider>{children}</AuthProvider>
+    </ThemeProvider>
+  )
 }
