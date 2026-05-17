@@ -18,6 +18,7 @@ export const navLinks = [
   { label: "Industries", href: "#industries" },
   { label: "Process", href: "#process" },
   { label: "Founders", href: "#founders" },
+  { label: "Career School", href: "/career-school" },
 ] as const;
 
 export const stats = [
